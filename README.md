@@ -5,7 +5,8 @@ These custom R code has been used in the study
 Ivan A. Kuznetsov, Estonian Biobank Research Team, Mait Metspalu, Uku Vainik, Luca Pagani, Francesco Montinaro, Vasili Pankratov
 bioRxiv 2023.10.25.564036; doi: https://doi.org/10.1101/2023.10.25.564036
 
-There are three folders with the scripts. You can find a short description of what each of the scripts does below:
+There are three folders with the scripts in the "R_code" directory. 
+Find a short description of what each of the scripts does below:
 
 
 ./data_preparation/:
