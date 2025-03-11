@@ -253,6 +253,42 @@ testDifferenceBirthRes <- function(ebb, prs_codes, only.all=FALSE){
   
 }
 
+# Adjustment PRS for another PRS and normalization
+adjustPRS_forEAprs <- function(tab, prs_codes, adj = "6138_1_adj2"){
+  
+  tab[, adjEA := get(adj)]
+  i=1
+  for(prs in prs_codes){
+    
+    print(i)
+    i <- i + 1
+    
+    if(prs == adj){
+      
+      tab[, PRS_adj2 := 0]
+      
+    }else{
+      
+      colnames(tab)[which(colnames(tab)==prs)] <- "PRS"
+      
+      lm_prs <- lm("PRS ~ adjEA", data = tab)
+      tab$PRS_adj2 <- tab$PRS - predict(object = lm_prs, newdata = tab)
+      tab[, PRS_adj2 := scale(PRS_adj2)]
+      
+      colnames(tab)[which(colnames(tab)=="PRS")] <- prs
+      
+    }
+    
+    colnames(tab)[which(colnames(tab)=="PRS_adj2")] <- paste0(prs, "_adjPGSea")
+    
+  }
+  
+  tab[, adjEA := NULL]
+  
+  return(tab)
+}
+
+
 
 option_list = list(
   make_option(c("-e", "--pca_est"), type="character", default=NULL, 
@@ -265,7 +301,7 @@ option_list = list(
               help="file with vkoods and PRS", metavar="character"),
   make_option(c("-u", "--nonrel"), type="character", default="non_relatives.tsv", 
               help="list of non-related individuals [default= %default]", metavar="character"),
-  make_option(c("-o", "--out"), type="character", default="results.tsv", 
+  make_option(c("-o", "--out"), type="character", default="~/tmp/", 
               help="output directory name [default= %default]", metavar="character")
 )
 
@@ -322,10 +358,6 @@ colnames(PCA)[1] <- "vkood"
 # File with phenotypes
 ebb <- fread(opt$pheno)
 
-################################
-# Here we start work with data #
-################################
-
 # Combine PRS, PCA, Phenotypes
 ebb <- mergeData(PRS=PRS, PCA=PCA, Phenotypes=ebb)
 
@@ -334,15 +366,16 @@ ebb_est <- adjustPRS(ebb[Nat=="Eestlane", ], prs_codes=prs_codes)
 ebb_rus <- adjustPRS(ebb[Nat=="Venelane", ], prs_codes=prs_codes)
 ebb <- rbind(ebb_est, ebb_rus)
 
-# write.table(ebb, "~/tmp/PRSs_adj.tsv", row.names = F, quote = F, sep = "\t")
-# ebb <- fread("~/tmp/PRSs_adj.tsv")
+
+# Save ebb data file with PGSs, PCs amd phenotypes
+write.table(ebb, paste0(opt$out, "PRSs_adj.tsv"), row.names = F, quote = F, sep = "\t")
 
 # calculate and save basic result table
-results <- calculateBasicStatistics(ebb = ebb, prs_codes=prs_codes, only.all=TRUE)
+results <- calculateBasicStatistics(ebb = ebb, prs_codes=prs_codes, only.all=FALSE)
 write.table(results, paste0(opt$out,"/results_all_PRS_ages2_yoa.tsv"), row.names = F, quote = F, sep = "\t")
 
 # calculate and save the table with statistics on PoB and PoR differences
-results_dif <- testDifferenceBirthRes(ebb = ebb, prs_codes=prs_codes, only.all=TRUE)
+results_dif <- testDifferenceBirthRes(ebb = ebb, prs_codes=prs_codes, only.all=FALSE)
 write.table(results_dif, paste0(opt$out, "results_all_PRS_modelDif_ages2_yoa.tsv"), row.names = F, quote = F, sep = "\t")
 
 
@@ -357,6 +390,58 @@ write.table(results, paste0(opt$out,"/results_all_PRS_ages2_yoa_nonrel.tsv"), ro
 # Calculate and save the table with statistics on PoB and PoR differences
 results_dif <- testDifferenceBirthRes(ebb = ebb[vkood %in% non_rel$vkood,], prs_codes=prs_codes, only.all=TRUE)
 write.table(results_dif, paste0(opt$out, "results_all_PRS_modelDif_ages2_yoa_nonrel.tsv"), row.names = F, quote = F, sep = "\t")
+
+
+
+######################################
+# Correlations between adjusted PGSs #
+######################################
+
+cor_cols <- which( colnames(ebb) %in% paste0(prs_codes, "_adj2") )
+cor_matrix <- cor(ebb[vkood %in% non_rel$vkood, ..cor_cols])
+write.table(cor_matrix, paste0(opt$out, "PRS_adj2_nonrel_cor_matrix.tsv"), col.names = T, row.names = T, quote = F, sep = "\t") 
+
+
+
+################################################
+# Var(county) for PGSs adjusted for PGS for EA #
+################################################
+
+# Adjustment PRS for PCA and normalization
+ebb_est <- adjustPRS(ebb[Nat=="Eestlane", ], prs_codes="EA4")
+ebb_rus <- adjustPRS(ebb[Nat=="Venelane", ], prs_codes="EA4")
+ebb <- rbind(ebb_est, ebb_rus)
+
+# Adjustment PRS for PGS for EA4
+ebb_est <- adjustPRS_forEAprs(ebb[Nat=="Eestlane", ], prs_codes=paste0(prs_codes, "_adj2"), adj = "EA4_adj2")
+ebb_rus <- adjustPRS_forEAprs(ebb[Nat=="Venelane", ], prs_codes=paste0(prs_codes, "_adj2"), adj = "EA4_adj2")
+ebb <- rbind(ebb_est, ebb_rus)
+
+# calculate and save basic result table
+results <- calculateBasicStatistics(ebb = ebb, prs_codes=paste0(prs_codes, "_adj2_adjPGSea"), only.all=TRUE)
+write.table(results, paste0(opt$out,"/results_all_PRS_pgsEA4adj_ages2_yoa.tsv"), row.names = F, quote = F, sep = "\t")
+
+results_dif <- testDifferenceBirthRes(ebb = ebb, prs_codes=paste0(prs_codes, "_adj2_adjPGSea"), only.all=TRUE)
+write.table(results_dif, paste0(opt$out, "/results_all_PRS_pgsEA4adj_modelDif_ages2_yoa.tsv"), row.names = F, quote = F, sep = "\t")
+
+
+# Remove the PGSs adjusted for PGS for EA
+cols_to_remove <- paste0(prs_codes, "_adj2_adjPGSea")
+dt[, (cols_to_remove) := NULL]
+
+# Adjustment PRS for PGSea
+ebb_est <- adjustPRS_forEAprs(ebb[Nat=="Eestlane", ], prs_codes=paste0(prs_codes, "_adj2"), adj = "6138_1_adj2")
+ebb_rus <- adjustPRS_forEAprs(ebb[Nat=="Venelane", ], prs_codes=paste0(prs_codes, "_adj2"), adj = "6138_1_adj2")
+ebb <- rbind(ebb_est, ebb_rus)
+
+# calculate and save basic result table
+results <- calculateBasicStatistics(ebb = ebb, prs_codes=paste0(prs_codes, "_adj2_adjPGSea"), only.all=FALSE)
+write.table(results, paste0(opt$out,"/results_all_PRS_pgsEAadj_ages2_yoa.tsv"), row.names = F, quote = F, sep = "\t")
+
+results_dif <- testDifferenceBirthRes(ebb = ebb, prs_codes=paste0(prs_codes, "_adj2_adjPGSea"), only.all=FALSE)
+write.table(results_dif, paste0(opt$out, "results_all_PRS_pgsEAadj_modelDif_ages2_yoa.tsv"), row.names = F, quote = F, sep = "\t")
+
+
 
 
 
@@ -397,72 +482,3 @@ write.table(results, paste0(opt$out,"/results_6138_1_nonrel_cumulative_adjustmen
 # calculate and save the table with statistics on PoB and PoR differences
 results_dif <- testDifferenceBirthRes(ebb = ebb, prs_codes=c("PRS", paste0("PRS_", 0:100)), only.all=TRUE)
 write.table(results_dif, paste0(opt$out, "results_6138_1_modelDif_nonrel_cumulative_adjustment.tsv"), row.names = F, quote = F, sep = "\t")
-
-
-
-
-
-####################################
-# Cumulative adjustment for UK PCs #
-####################################
-
-# Keep only normalized UKBB EA PRS
-ebb <- ebb[, c("vkood", "6138_1")]
-colnames(ebb)[2] <- "PRS"
-
-# Combine PRS, PCA, Phenotypes
-ebb <- mergeData(PRS=PRS, PCA=PCA, Phenotypes=ebb)
-
-# Keep unrelated individuals
-ebb = ebb[vkood %in% non_rel$vkood, ]
-
-# Adjust PRS for demographic covariates (0 PCs)
-lm_prs <- lm("PRS ~ Sex + YoB + I(YoB^2) + I(Sex*YoB)", data = ebb)
-ebb$PRS_adj <- ebb$PRS - predict(object = lm_prs, newdata = ebb)
-ebb[, PRS_adj := scale(PRS_adj)]
-colnames(ebb)[which(colnames(ebb)=="PRS_adj")] <- "PRS_0"
-
-# Adjust PRS for demographic covariates and 100 PCs
-lm_prs <- lm(paste0("PRS ~ Sex + YoB + I(YoB^2) + I(Sex*YoB) + ", 
-                    paste("PC", 1:100, sep = "", collapse = " + ")), data = ebb)
-ebb$PRS_adj <- ebb$PRS - predict(object = lm_prs, newdata = ebb)
-ebb[, PRS_adj := scale(PRS_adj)]
-colnames(ebb)[which(colnames(ebb)=="PRS_adj")] <- "PRS_adj2"
-
-# Merge data with samples' projections into first 15 PCs' UKB space
-uk_pcs <- fread("path/UKBB_PCA.chrALL.sscore")
-colnames(uk_pcs) <- c("vkood", paste0("UK_PC", 1:15))
-ebb <- merge(ebb, uk_pcs, by="vkood")
-
-# Adjust PRS and PRS_adj2 for UK PCs cumulatively
-for(i in 1:15){
-  lm_prs <- lm(paste0("PRS ~ Sex + YoB + I(YoB^2) + I(Sex*YoB) + ", 
-                      paste("UK_PC", 1:i, sep = "", collapse = " + ")),
-               data = ebb)
-  ebb$PRS_adj <- ebb$PRS - predict(object = lm_prs, newdata = ebb)
-  ebb[, PRS_adj := scale(PRS_adj)]
-  colnames(ebb)[which(colnames(ebb)=="PRS_adj")] <- paste0("PRS_UK", i)
-  
-  lm_prs <- lm(paste0("PRS ~ Sex + YoB + I(YoB^2) + I(Sex*YoB) + ", 
-                      paste("PC", 1:100, sep = "", collapse = " + "), " + ",
-                      paste("UK_PC", 1:i, sep = "", collapse = " + ")),
-               data = ebb)
-  ebb$PRS_adj <- ebb$PRS - predict(object = lm_prs, newdata = ebb)
-  ebb[, PRS_adj := (PRS_adj-mean(PRS_adj))/sd(PRS_adj)]
-  colnames(ebb)[which(colnames(ebb)=="PRS_adj")] <- paste0("PRS_adj_UK", i)
-  
-}
-
-
-# calculate and save basic result table
-results <- calculateBasicStatistics(ebb = ebb, prs_codes=c("PRS_0", paste0("PRS_UK", 1:15),
-                                                           "PRS_adj2", paste0("PRS_adj_UK", 1:15)), only.all=TRUE)
-write.table(results, paste0(opt$out,"/results_6138_1_nonrel_cumulative_adjustment_UKPC.tsv"), 
-            row.names = F, quote = F, sep = "\t")
-
-# calculate and save the table with statistics on PoB and PoR differences
-results_dif <- testDifferenceBirthRes(ebb = ebb, prs_codes=c("PRS_0", paste0("PRS_UK", 1:15),
-                                                             "PRS_adj2", paste0("PRS_adj_UK", 1:15)), only.all=TRUE)
-write.table(results_dif, paste0(opt$out, "results_6138_1_modelDif_nonrel_cumulative_adjustment_UKPC.tsv"), 
-            row.names = F, quote = F, sep = "\t")
-
