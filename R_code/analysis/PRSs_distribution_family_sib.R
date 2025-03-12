@@ -1,7 +1,6 @@
 ################################################################################
 # Script calculating the mean and sd for PGSs by region for all the subcohorts #
 # in sibling design (deviation of individual's PGS from the sibship mean PGS) ##
-# And calculating the correlations between polygenic scores in sibling design ##
 ################################################################################
 
 
