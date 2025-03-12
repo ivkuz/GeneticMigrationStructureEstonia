@@ -1,6 +1,6 @@
 # GeneticMigrationStructureEstonia
 
-These custom R code has been used in the study 
+This custom R code has been used in the study 
 "Assessing the impact of 20th century internal migrations on the genetic structure of Estonia"
 Ivan A. Kuznetsov, Estonian Biobank Research Team, Mait Metspalu, Uku Vainik, Luca Pagani, Francesco Montinaro, Vasili Pankratov
 bioRxiv 2023.10.25.564036; doi: https://doi.org/10.1101/2023.10.25.564036
@@ -20,15 +20,17 @@ Find a short description of what each of the scripts does below:
 
 	PCs_ditribution.R	- Script calculating the mean and sd for 100 PCs by region for all the subcohorts;
 
-	PRSs_distribution.R	- Script calculating the mean and sd for PGSs by region for all the subcohorts;
+	PRSs_distribution.R	- Script calculating the mean and sd for PGSs by region for all the subcohorts
+ 				and for PGSs adjusted for PGS for EA;
 
-	PRS_correlations.R	- Script calculating the correlations between polygenic scores from population-based GWAS data;
+	PRSs_distribution_family_sib.R		- Script calculating the mean and sd for PGSs by region for all the subcohorts
+						in sibling design (deviation of individual's PGS from the sibship mean PGS);
 
-	PRS_correlations_sib.R	- Script calculating the correlations between polygenic scores from sibship-based GWAS data;
+	PRSs_distribution_family_sib_random.R		- Script estimating the effects of PGSs and PCs on migration from ORE in siblings;
 
-	PRSs_distribution_and_cor_family_sib.R	- Script calculating the mean and sd for PGSs by region for all the subcohorts
-						in sibling design (deviation of individual's PGS from the sibship mean PGS),
-						and calculating the correlations between polygenic scores in sibling design;
+ 	migrEffects.R	- Script estimating the effects of PGSs on migration from ORE in unrelated individuals;
+
+  	migrEffects_sib.R	- Script estimating the effects of PGSs and PCs on migration from ORE in siblings;
 
 	resultsAnalysis_calculate_fstat.R	- Script calculating the proportion of variance explained by region 
 						and related statistics for PGSs, PCs etc.,
@@ -37,20 +39,32 @@ Find a short description of what each of the scripts does below:
 
 ./plotting/:
 
-	plotSN1.R		- Script making the PDFs for Supplementary Note 1, describing the dataset
-				(Supplementary Figures 1-3)
+	figure1_2.R	- Figure 1. Fraction of the inter-individual variance of (A) PCs, (B) PGSs and 
+ 			(С) PGSs additionally adjusted for PGSEA, explained by county of birth (POB) and county of residence (POR);
+    			Figure 2. Fraction of the inter-individual variance of the deviation of individual’s value from the sibship’s mean for
+       			(A) PCs, (B) PGSs, and (C) PGSs additionally adjusted for PGSEA4, explained by county of birth (POB) and county of residence (POR);
+	  		Supplementary Figures with EA4 PGS and with unrelated subsample;
 
-	plotMaps.R		- Script making the PDFs with maps - mean PGS and EA in the regions
-				(Figure 3; Supplementary Figures 14-25);
+   	figure3.R	- Figure 3. PGSEA (PGSEA4) landscape in Estonia
+    			(maps with mean PGS per county and forest plots for the difference POR-POB in population and in siblings);
 
-	plotMapTartu-Tallinn.R	- Script making the PDFs with maps - differences in mean PGS and EA between migrants 
-				to Tallinn or Tartu in the regions (Supplementary Figures 32-37);
+	figure4_sib_panel.R	- Prepares .rds file with Figure 4C, input for figure4.R;
 
-	plotMigrationBars_final.R	- Script making the PDFs with barplots - mean PGS and EA in the migration groups
-					(Figure 4; Supplementary Figures 26-31, 38-63),
-					It also makes PDF with plot with mean PRS in the groups of 
-					born in or migrated to the cities,
-					It also makes PDF with plot with PRS distributions 
-					in different migration groups for Q&A;
+ 	figure4_7.R	- Figure 4. PGSEA (PGSEA4) in migration groups defined by combination of place of birth (POB) and residence (POR); 
+  			And Supplementary Figures with bar plots for migration groups;
+     			Figure 7. Difference in average PGSEA between cities (Tallinn and Tartu combined) and ORE across birth year bins;
+			Also makes PDF with plot with PRS distributions in different migration groups for SM;
 
-	plotMigrationBars_family_sib.R	- Script making the PDF with barplots for sibling design PGS;
+   	figure5.R	- Figure 5. The difference in mean PGSEA and EA (years of education) between residents of Tallinn and Tartu City by county of birth;
+     
+	figure6.R	- Figure 6. PGSs as predictors of migration from ORE to the major cities (Tallinn or Tartu);
+ 			And the corresponding Supplementary Figures;
+  
+ 	SF1_2_3.R	- Supplementary Figure 1. The distribution of EstBB participants after filtering by (A) date of agreement (year of recruitment) and (B) age;
+  			Supplementary Figure 2. Geographic distribution of EstBB participants by county of residence;
+     			Supplementary Figure 3. Absolute number of participants in each group (top) and the same, 
+			normalized by the size of the corresponding group in the general population (bottom);
+
+	SF5.R	- Supplementary Figure 5. Internal migration in Estonia;
+
+ 	SF29_AM.R	- Supplementary Figure 29. Mating by proximity and assortative mating in Estonia;
