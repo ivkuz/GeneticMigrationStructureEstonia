@@ -1,8 +1,6 @@
-#############################################################################
-# Script making the PDFs with maps with mean PGS per county #################
-# and forest plots for the difference POR-POB in population and in siblings #
-# Figures 3 #################################################################
-#############################################################################
+#################################################################
+# Script prepares .rds file with Figure 4C, input for figure4.R #
+#################################################################
 
 
 library(data.table)
