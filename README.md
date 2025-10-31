@@ -1,4 +1,5 @@
 # GeneticMigrationStructureEstonia
+DOI: 10.5281/zenodo.17497534
 
 This custom R code has been used in the study 
 "Assessing the impact of 20th century internal migrations on the genetic structure of Estonia"
